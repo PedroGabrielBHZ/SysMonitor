@@ -54,7 +54,7 @@ void NCursesDisplay::DisplaySystem(System& system, WINDOW* window) {
   wrefresh(window);
 }
 
-void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
+void NCursesDisplay::DisplayProcesses(std::set<Process>& processes,
                                       WINDOW* window, int n) {
   int row{0};
   int const pid_column{2};
@@ -71,17 +71,19 @@ void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
   mvwprintw(window, row, time_column, "TIME+");
   mvwprintw(window, row, command_column, "COMMAND");
   wattroff(window, COLOR_PAIR(2));
-  int const num_processes = int(processes.size()) > n ? n : processes.size();
-  for (int i = 0; i < num_processes; ++i) {
-    mvwprintw(window, ++row, pid_column, to_string(processes[i].Pid()).c_str());
-    mvwprintw(window, row, user_column, processes[i].User().c_str());
-    float cpu = processes[i].CpuUtilization() * 100;
+  for (auto p : processes) {
+    mvwprintw(window, ++row, pid_column, to_string(p.Pid()).c_str());
+    mvwprintw(window, row, user_column, p.User().c_str());
+    float cpu = p.CpuUtilization() * 100;
     mvwprintw(window, row, cpu_column, to_string(cpu).substr(0, 4).c_str());
-    mvwprintw(window, row, ram_column, processes[i].Ram().c_str());
+    mvwprintw(window, row, ram_column, p.Ram().c_str());
     mvwprintw(window, row, time_column,
-              Format::ElapsedTime(processes[i].UpTime()).c_str());
+              Format::ElapsedTime(p.UpTime()).c_str());
     mvwprintw(window, row, command_column,
-              processes[i].Command().substr(0, window->_maxx - 46).c_str());
+              p.Command().substr(0, window->_maxx - 46).c_str());
+    if (row == n + 1) {
+      break;
+    }
   }
 }
 
@@ -97,6 +99,11 @@ void NCursesDisplay::Display(System& system, int n) {
       newwin(3 + n, x_max - 1, system_window->_maxy + 1, 0);
 
   while (1) {
+    try {
+      system.updateProcesses();
+    } catch (...) {
+      continue;
+    }
     init_pair(1, COLOR_BLUE, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
     box(system_window, 0, 0);
