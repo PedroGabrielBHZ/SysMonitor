@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <regex>
+#include <set>
 #include <string>
 
 namespace LinuxParser {
@@ -18,14 +19,28 @@ const std::string kVersionFilename{"/version"};
 const std::string kOSPath{"/etc/os-release"};
 const std::string kPasswordPath{"/etc/passwd"};
 
+// Filters
+const std::string fProcesses("processes");
+const std::string fRunningProcesses("procs_running");
+const std::string fMemTotal("MemTotal:");
+const std::string fMemFree("MemAvailable:");
+const std::string fCpu("cpu");
+const std::string fUID("Uid:");
+const std::string fProcMem("VmRSS:");
+
 // System
 float MemoryUtilization();
 long UpTime();
-std::vector<int> Pids();
-int TotalProcesses();
-int RunningProcesses();
+long TotalProcesses();
+long RunningProcesses();
+long Jiffies();
+long ActiveJiffies();
+long ActiveJiffies(long pid);
+long IdleJiffies();
+std::set<long> Pids();
 std::string OperatingSystem();
 std::string Kernel();
+std::vector<std::string> CpuUtilization();
 
 // CPU
 enum CPUStates {
@@ -40,18 +55,13 @@ enum CPUStates {
   kGuest_,
   kGuestNice_
 };
-std::vector<std::string> CpuUtilization();
-long Jiffies();
-long ActiveJiffies();
-long ActiveJiffies(int pid);
-long IdleJiffies();
 
 // Processes
-std::string Command(int pid);
-std::string Ram(int pid);
-std::string Uid(int pid);
-std::string User(int pid);
-long int UpTime(int pid);
+std::string Command(long pid);
+std::string Ram(long pid);
+std::string Uid(long pid);
+std::string User(long pid);
+long UpTime(long pid);
 };  // namespace LinuxParser
 
 #endif

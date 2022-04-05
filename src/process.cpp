@@ -2,54 +2,75 @@
 
 #include <unistd.h>
 
-#include <cctype>
-#include <sstream>
 #include <string>
-#include <vector>
+
 #include "linux_parser.h"
 
-using std::string;
-using std::to_string;
-using std::vector;
+/**
+ * @brief Construct a new Process:: Process object
+ *
+ * @param pid
+ */
+Process::Process(long pid) : pid(pid) {}
 
-Process::Process(int pid) {
-  m_pid = pid;
-  m_command = LinuxParser::Command(pid);
-  std::string ram = LinuxParser::Ram(pid);
-  m_ram = std::stol(ram);
-  m_uptime = LinuxParser::UpTime(pid);
-  m_user = LinuxParser::User(pid);
+/**
+ * @brief Return this process's ID
+ *
+ * @return int
+ */
+long Process::Pid() const { return this->pid; }
 
-  long seconds = LinuxParser::UpTime() - m_uptime;
-  long totaltime = LinuxParser::ActiveJiffies(pid);
+/**
+ * @brief Return this process's CPU utilization
+ *
+ * @return float
+ */
+float Process::CpuUtilization() const {
   try {
-    m_utilization = float(totaltime) / float(seconds);
-
+    return static_cast<float>(LinuxParser::ActiveJiffies(this->pid)) /
+           static_cast<float>(this->UpTime());
   } catch (...) {
-    m_utilization = 0;
+    return 1.0;
   }
 }
 
-// Return this process's ID
-int Process::Pid() const { return m_pid; }
+/**
+ * @brief Return the command that generated this process
+ *
+ * @return std::string
+ */
+std::string Process::Command() const { return LinuxParser::Command(this->pid); }
 
-// Return this process's CPU utilization
-float Process::CpuUtilization() const { return m_utilization; }
+/**
+ * @brief Return this process's memory utilization
+ *
+ * @return std::string
+ */
+std::string Process::Ram() const { return LinuxParser::Ram(this->pid); }
 
-// Return the command that generated this process
-string Process::Command() const { return m_command; }
+/**
+ * @brief Return the user (name) that generated this process
+ *
+ * @return std::string
+ */
+std::string Process::User() const { return LinuxParser::User(this->pid); }
 
-// Return this process's memory utilization
-string Process::Ram() const { return std::to_string(m_ram); }
-int Process::getRam() const { return m_ram; }
+/**
+ * @brief Return the age of this process (in seconds)
+ *
+ * @return long
+ */
+long Process::UpTime() const {
+  return LinuxParser::UpTime() - LinuxParser::UpTime(this->pid);
+}
 
-// Return the user (name) that generated this process
-string Process::User() const { return m_user; }
-
-//  Return the age of this process (in seconds)
-long int Process::UpTime() const { return m_uptime; }
-
-// Overload the "less than" comparison operator for Process objects
-bool Process::operator<(Process const& a) const {
-  return CpuUtilization() < a.CpuUtilization();
+/**
+ * @brief Overload the "less than" comparison operator for Process objects
+ *
+ * @param a
+ * @return true
+ * @return false
+ */
+bool Process::operator<(Process const& o) const {
+  return CpuUtilization() > o.CpuUtilization();
 }
