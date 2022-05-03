@@ -1,5 +1,6 @@
 # SysMonitor
 
+This is a humble attempt to build a system monitor. Linux stores a lot of system data in files within the /proc directory. Most of the data that this project displays exists in those files.
 
 <img src="monitor.png"/>
 
