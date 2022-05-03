@@ -6,7 +6,7 @@
 # Dependencies for Running Locally
 
 `ncurses` is a library that facilitates text-based graphical output in the terminal. 
-This project relies on ncurses for display output. Please check your distro`s package manager on installing the appropriate libraries.
+This project relies on ncurses for display output. Please check your distro package manager on installing the appropriate libraries.
 
 * cmake >= 3.11.3
   * All OSes: [click here for installation instructions](https://cmake.org/install/)
